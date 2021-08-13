@@ -1,7 +1,8 @@
 from flask import Flask, request, send_from_directory, jsonify
 from environs import Env
 from os import environ, system, listdir
-from operations.image import create_files, check_file_error, save_file, get_all_files, get_files_by_type, get_path
+from operations.image import create_files, check_file_error, save_file
+from operations.image import get_all_files, get_files_by_type, get_path
 env = Env()
 env.read_env()
 
@@ -10,12 +11,11 @@ app = Flask(__name__)
 create_files()
 max_content = environ.get('MAX_CONTENT_LENGTH')
 
+app.config['MAX_CONTENT_LENGTH'] = 1000000
 
-@app.route("/upload", methods=["POST"])
+
+@app.post("/upload")
 def post_file():
-
-    
-
     try:
         selected_file = request.files['file']
 
@@ -25,12 +25,11 @@ def post_file():
             return {"message": error['message']}, error['type']
 
         save_file(selected_file)
-        # selected_file.save('./kenzie.png')
 
         return {"message": selected_file.filename}, 201
 
     except Exception:
-        return {"message": "Upload mal sucedido."}, 404
+        return {"message": "Tamanho do arquivo não deve exceder 1mb!"}, 413
 
 
 @app.route('/files')
@@ -75,7 +74,9 @@ def download_zip():
     compression_rate = request.args.get('compression_rate')
 
     for file_name in listdir(f'./files/{file_type}'):
-        system(f'cd files/{file_type}; zip -{compression_rate} /tmp/zipped {file_name}')
+        system(
+            f'cd files/{file_type}; zip -{compression_rate} /tmp/zipped {file_name}'
+            )
 
     return send_from_directory(
             directory='/tmp',

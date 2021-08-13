@@ -62,16 +62,8 @@ def check_file_error(file):
         what type error the route should return
     """
 
-    size = len(file.read())
     name = file.filename
     type = get_file_type(name)
-
-    if size > max_content:
-        return {
-            "error": "yes",
-            "message": "Tamanho do arquivo não deve exceder 1mb!",
-            "type": 413
-            }
 
     if name in listdir(f'{files_path}/{type}'):
         return {
