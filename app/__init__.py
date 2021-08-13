@@ -1,6 +1,6 @@
 from flask import Flask, request, send_from_directory, jsonify
 from environs import Env
-from os import environ, system
+from os import environ, system, listdir
 from operations.image import create_files, check_file_error, save_file, get_all_files, get_files_by_type, get_path
 env = Env()
 env.read_env()
@@ -72,6 +72,11 @@ def download_zip():
     file_type = request.args.get('file_type')
     compression_rate = request.args.get('compression_rate')
 
-    system(f'zip {compression_rate} -r zipped ../files/{file_type}')
+    for file_name in listdir(f'./files/{file_type}'):
+        system(f'cd files/{file_type}; zip -{compression_rate} /tmp/zipped {file_name}')
 
-    return compression_rate, 200
+    return send_from_directory(
+            directory='/tmp',
+            path='zipped.zip',
+            as_attachment=True), 200
+
