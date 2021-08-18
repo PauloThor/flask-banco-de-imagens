@@ -1,8 +1,8 @@
 from os import environ, system, listdir
+from werkzeug.utils import secure_filename
 
 all_files = listdir('../')
 files_path = environ.get('FILES_DIRECTORY')
-max_content = int(environ.get('MAX_CONTENT_LENGTH'))
 
 all_types = ['png', 'jpg', 'gif']
 
@@ -35,22 +35,6 @@ def get_file_type(file_name: str):
     return file_name[index:]
 
 
-def check_file_size(file):
-    """Returns the size of the file
-
-    Args:
-        file (dict): The file which is gonna be checked
-
-    Returns:
-        int: The size of the file in bytes
-    """
-
-    print(file)
-    size = len(file.read())
-
-    return size > max_content
-
-
 def check_file_error(file):
     """Returns all information about the errors of the file
 
@@ -64,8 +48,11 @@ def check_file_error(file):
 
     name = file.filename
     type = get_file_type(name)
+    files_path = environ.get('FILES_DIRECTORY')
 
-    if name in listdir(f'{files_path}/{type}'):
+    path_folder = listdir(f'{files_path}/{type}') 
+
+    if name in path_folder:
         return {
             "error": "yes",
             "message": "Já existe um arquivo com esse nome!",
@@ -90,10 +77,11 @@ def save_file(file):
         file (dict): The file which will be saved
     """
 
-    name = file.filename
+    name = secure_filename(file.filename)
     type = get_file_type(name)
+    files_path = environ.get('FILES_DIRECTORY')
 
-    print(file)
+    print(files_path)
     file.save(f'{files_path}/{type}/{name}')
     # file.save(path.join('./files/png', name))
 
@@ -104,6 +92,8 @@ def get_all_files():
     Returns:
         list: The list of strings according to each file name
     """
+
+    files_path = environ.get('FILES_DIRECTORY')
 
     png_files = listdir(f'{files_path}/png')
     jpg_files = listdir(f'{files_path}/jpg')
@@ -139,6 +129,7 @@ def get_path(file_name):
     Returns:
         str: The path to the file
     """
+    files_path = environ.get('FILES_DIRECTORY')
 
     type = get_file_type(file_name)
 
